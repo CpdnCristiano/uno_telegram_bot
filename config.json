@@ -1,0 +1,12 @@
+{
+    "token": "1368029069:AAEL33dB0uD6A4b_JnCDXuAgEdfD3riVJJs",
+    "admin_list": [0],
+    "open_lobby": true,
+    "enable_translations": false,
+    "workers": 32,
+    "default_gamemode": "wild",
+    "waiting_time": 120,
+    "time_removal_after_skip": 20,
+    "min_fast_turn_time": 15,
+    "min_players": 2
+}
