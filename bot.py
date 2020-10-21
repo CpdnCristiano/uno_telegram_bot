@@ -18,6 +18,8 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+import os
+
 from datetime import datetime
 
 from telegram import ParseMode, InlineKeyboardMarkup, \
@@ -34,7 +36,9 @@ from config import WAITING_TIME, DEFAULT_GAMEMODE, MIN_PLAYERS
 from errors import (NoGameInChatError, LobbyClosedError, AlreadyJoinedError,
                     NotEnoughPlayersError, DeckEmptyError)
 from internationalization import _, __, user_locale, game_locales
-from results import (add_call_bluff, add_choose_color, add_draw, add_gameinfo,
+from results import (
+    # add_call_bluff, 
+    add_choose_color, add_draw, add_gameinfo,
                      add_no_game, add_not_started, add_other_cards, add_pass,
                      add_card, add_mode_classic, add_mode_fast, add_mode_wild, add_mode_text)
 from shared_vars import gm, updater, dispatcher
@@ -44,6 +48,7 @@ from utils import display_name
 from utils import send_async, answer_async, error, TIMEOUT, user_is_creator_or_admin, user_is_creator, game_is_running
 
 
+PORT = int(os.environ.get('PORT', 5000))
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
@@ -611,8 +616,8 @@ def reply_to_query(bot, update):
                 else:
                     add_pass(results, game)
 
-                if game.last_card.special == c.DRAW_FOUR and game.draw_counter:
-                    add_call_bluff(results, game)
+                # if game.last_card.special == c.DRAW_FOUR and game.draw_counter:
+                #     add_call_bluff(results, game)
 
                 playable = player.playable_cards()
                 added_ids = list()  # Duplicates are not allowed
@@ -741,4 +746,9 @@ dispatcher.add_handler(MessageHandler(Filters.status_update, status_update))
 dispatcher.add_error_handler(error)
 
 start_bot(updater)
+
+updater.start_webhook (listen = "0.0.0.0", 
+                          port = int (PORT), 
+                          url_path = TOKEN) 
+updater.bot.setWebhook (' https://yourherokuappname.herokuapp.com/' + TOKEN)
 updater.idle()

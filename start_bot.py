@@ -20,6 +20,14 @@
 # Modify this file if you want a different startup sequence, for example using
 # a Webhook
 
+import os
+
+
+from config import TOKEN
+PORT = int(os.environ.get('PORT', 5000))
 
 def start_bot(updater):
-    updater.start_polling()
+    updater.start_webhook (listen = "0.0.0.0", 
+                          port = int (PORT), 
+                          url_path = TOKEN) 
+    updater.bot.setWebhook ('https://fathomless-fjord-72062.herokuapp.com/' + TOKEN)

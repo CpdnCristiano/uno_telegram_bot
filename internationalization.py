@@ -66,14 +66,14 @@ class _Underscore(object):
             locale = self.locale_stack[-1]
 
         if locale not in self.translators.keys():
-            if n is 1:
+            if n == 1:
                 return singular
             else:
                 return plural
 
         translator = self.translators[locale]
 
-        if plural is None:
+        if plural == None:
             return translator.gettext(singular)
         else:
             return translator.ngettext(singular, plural, n)

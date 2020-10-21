@@ -181,9 +181,9 @@ def add_pass(results, game):
         )
     )
 
-
-def add_call_bluff(results, game):
-    """Add option to call a bluff"""
+"""Add option to call a bluff"""
+""" def add_call_bluff(results, game):
+    
     results.append(
         Sticker(
             "call_bluff",
@@ -193,7 +193,7 @@ def add_call_bluff(results, game):
                                        multi=game.translate))
         )
     )
-
+ """
 
 def add_card(game, card, results, can_play):
     """Add an option that represents a card"""

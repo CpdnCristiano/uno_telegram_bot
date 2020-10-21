@@ -59,7 +59,7 @@ class Player(object):
 
     def draw_first_hand(self):
         try:
-            for _ in range(7):
+            for _ in range(9):
                 self.cards.append(self.game.deck.draw())
         except DeckEmptyError:
             for card in self.cards:
@@ -151,10 +151,6 @@ class Player(object):
 
                 self.bluffing = (self.bluffing or card.color == last.color)
 
-        # You may not play a chooser or +4 as your last card
-        if len(self.cards) == 1 and self.cards[0].special:
-            return list()
-
         return playable
 
     def _card_playable(self, card):
@@ -169,15 +165,12 @@ class Player(object):
             self.logger.debug("Card's color or value doesn't match")
             is_playable = False
         elif last.value == c.DRAW_TWO and not \
-                card.value == c.DRAW_TWO and self.game.draw_counter:
+                (card.value == c.DRAW_TWO or card.special == c.DRAW_FOUR ) and self.game.draw_counter:
             self.logger.debug("Player has to draw and can't counter")
             is_playable = False
-        elif last.special == c.DRAW_FOUR and self.game.draw_counter:
+        elif last.special == c.DRAW_FOUR and not \
+            card.special == c.DRAW_FOUR and self.game.draw_counter:
             self.logger.debug("Player has to draw and can't counter")
-            is_playable = False
-        elif (last.special == c.CHOOSE or last.special == c.DRAW_FOUR) and \
-                (card.special == c.CHOOSE or card.special == c.DRAW_FOUR):
-            self.logger.debug("Can't play colorchooser on another one")
             is_playable = False
         elif not last.color:
             self.logger.debug("Last card has no color")
