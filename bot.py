@@ -720,6 +720,22 @@ def reset_waiting_time(bot, player):
                            "seconds", multi=player.game.translate)
                    .format(name=display_name(player.user), time=WAITING_TIME))
 
+@game_locales
+def onText(bot, update):
+    chat = update.message.chat
+    user = update.message.from_user
+    try:
+        game = gm.chatid_games[chat.id][-1]
+    except (KeyError, IndexError):
+        return
+    if game.last_card.value == c.SEVEN :
+        send_async(bot, chat.id,
+                   text=__("{name} falou durante o 7 e comprou uma carta", 
+                   multi=game.translate)
+                   .format(name=display_name(user)))
+        player = gm.player_for_user_in_chat(user, chat)
+        player.draw()
+
 
 # Add all handlers to the dispatcher and run the bot
 dispatcher.add_handler(InlineQueryHandler(reply_to_query))
@@ -742,6 +758,7 @@ dispatcher.add_handler(CommandHandler('notify_me', notify_me))
 simple_commands.register()
 settings.register()
 dispatcher.add_handler(MessageHandler(Filters.status_update, status_update))
+dispatcher.add_handler(MessageHandler(Filters.text, onText))
 dispatcher.add_error_handler(error)
 
 start_bot(updater)
