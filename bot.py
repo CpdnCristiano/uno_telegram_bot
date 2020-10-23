@@ -740,7 +740,7 @@ def onText(bot, update):
                    multi=game.translate)
                    .format(name=display_name(user)))
         player = gm.player_for_user_in_chat(user, chat)
-        logger.info("Add one card for ". gm.player_for_user_in_chat(user, chat))
+        logger.info("Add one card for {name}".format(name=display_name(player.user)))
         player.draw_serven()
 
 # Add all handlers to the dispatcher and run the bot

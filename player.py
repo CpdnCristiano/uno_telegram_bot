@@ -124,18 +124,15 @@ class Player(object):
         finally:
             self.game.draw_counter = 0
             self.drew = True
+
     def draw_serven(self):
         try:
-            for _ in range(1):
-                self.cards.append(self.game.deck.draw())
+            self.cards.append(self.game.deck.draw())
 
         except DeckEmptyError:
             raise
 
-        finally:
-            self.game.draw_counter = 0
-            self.drew = False;
-            
+
     def play(self, card):
         """Plays a card and removes it from hand"""
         self.cards.remove(card)
