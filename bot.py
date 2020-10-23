@@ -18,9 +18,11 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+from logging import log
 import os
 
 from datetime import datetime
+import re
 
 from telegram import ParseMode, InlineKeyboardMarkup, \
     InlineKeyboardButton
@@ -57,7 +59,7 @@ logger = logging.getLogger(__name__)
 @user_locale
 def notify_me(bot, update):
     """Handler for /notify_me command, pm people for next game"""
-    chat_id = update.message.chat_id
+    chat_id = update.message.chat_id  
     if update.message.chat.type == 'private':
         send_async(bot,
                    chat_id,
@@ -649,6 +651,7 @@ def reply_to_query(bot, update):
 @game_locales
 @user_locale
 def process_result(bot, update, job_queue):
+
     """
     Handler for chosen inline results.
     Checks the players actions and acts accordingly.
@@ -721,21 +724,24 @@ def reset_waiting_time(bot, player):
                    .format(name=display_name(player.user), time=WAITING_TIME))
 
 @game_locales
+@user_locale
 def onText(bot, update):
+    
+
     chat = update.message.chat
     user = update.message.from_user
     try:
         game = gm.chatid_games[chat.id][-1]
     except (KeyError, IndexError):
         return
-    if game.last_card.value == c.SEVEN :
+    if game.started and game.last_card.value == c.SEVEN and not (update.message.text.startswith("Drawing") or update.message.text == "Pass"):
         send_async(bot, chat.id,
                    text=__("{name} falou durante o 7 e comprou uma carta", 
                    multi=game.translate)
                    .format(name=display_name(user)))
         player = gm.player_for_user_in_chat(user, chat)
-        player.draw()
-
+        logger.info("Add one card for ". gm.player_for_user_in_chat(user, chat))
+        player.draw_serven()
 
 # Add all handlers to the dispatcher and run the bot
 dispatcher.add_handler(InlineQueryHandler(reply_to_query))
@@ -758,7 +764,7 @@ dispatcher.add_handler(CommandHandler('notify_me', notify_me))
 simple_commands.register()
 settings.register()
 dispatcher.add_handler(MessageHandler(Filters.status_update, status_update))
-dispatcher.add_handler(MessageHandler(Filters.text, onText))
+dispatcher.add_handler(MessageHandler(Filters.all, onText))
 dispatcher.add_error_handler(error)
 
 start_bot(updater)
