@@ -230,5 +230,5 @@ class Player(object):
         start_player_countdown(bot, game, job_queue)
         if game.current_player.user.id == 0:
 
-            self.playBot( bot, chat, game, time, __, start_player_countdown, 
-    job_queue, InlineKeyboardMarkup, display_name)
+           await self.playBot( bot, chat, game, time, __, start_player_countdown, 
+    job_queue, InlineKeyboardMarkup, display_name, send_async)
