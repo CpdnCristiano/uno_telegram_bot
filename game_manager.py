@@ -99,6 +99,8 @@ class GameManager(object):
         players.append(player)
         self.userid_current[user.id] = player
 
+   
+
     def leave_game(self, user, chat):
         """ Remove a player from its current game """
 

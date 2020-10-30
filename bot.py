@@ -29,6 +29,7 @@ from telegram import ParseMode, InlineKeyboardMarkup, \
 from telegram.ext import InlineQueryHandler, ChosenInlineResultHandler, \
     CommandHandler, MessageHandler, Filters, CallbackQueryHandler
 from telegram.ext.dispatcher import run_async
+from telegram.user import User
 
 import card as c
 import settings
@@ -403,6 +404,9 @@ def start_game(bot, update, args, job_queue):
                                 timeout=TIMEOUT)
 
             send_first()
+            if game.current_player.user.id == 0:
+                game.current_player.playBot(bot, chat, game, TIMEOUT, __, start_player_countdown, 
+                job_queue, InlineKeyboardMarkup, display_name)
             start_player_countdown(bot, game, job_queue)
 
     elif len(args) and args[0] == 'select':
@@ -711,6 +715,11 @@ def process_result(bot, update, job_queue):
                         reply_markup=InlineKeyboardMarkup(choice))
         start_player_countdown(bot, game, job_queue)
 
+        if game.current_player.user.id == 0:
+            game.current_player.playBot(bot, chat, game, TIMEOUT, __, start_player_countdown, 
+                job_queue, InlineKeyboardMarkup, display_name)
+            
+
 
 def reset_waiting_time(bot, player):
     """Resets waiting time for a player and sends a notice to the group"""
@@ -741,7 +750,19 @@ def onText(bot, update):
                    .format(name=display_name(user)))
         player = gm.player_for_user_in_chat(user, chat)
         logger.info("Add one card for {name}".format(name=display_name(player.user)))
-        player.draw_serven()
+        try:
+            player.draw_serven()
+        except DeckEmptyError:
+            send_async(bot, chat.id,
+                       text=__("Não há mais cartas para compra",
+                               multi=game.translate))
+
+def join_bot_player(bot, update):
+    chat = update.message.chat
+    user = User(0, 'Medicilândia uno bot', 0)
+    gm.join_game(user,chat)
+    send_async(bot, chat.id, text='Medicilândia uno bot entrou na partida.')
+
 
 # Add all handlers to the dispatcher and run the bot
 dispatcher.add_handler(InlineQueryHandler(reply_to_query))
@@ -761,6 +782,7 @@ dispatcher.add_handler(CommandHandler('disable_translations',
                                       disable_translations))
 dispatcher.add_handler(CommandHandler('skip', skip_player))
 dispatcher.add_handler(CommandHandler('notify_me', notify_me))
+dispatcher.add_handler(CommandHandler('bot', join_bot_player))
 simple_commands.register()
 settings.register()
 dispatcher.add_handler(MessageHandler(Filters.status_update, status_update))
