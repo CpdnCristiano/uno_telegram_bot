@@ -48,7 +48,7 @@ from shared_vars import gm, updater, dispatcher
 from simple_commands import help_handler
 from start_bot import start_bot
 from utils import display_name
-from utils import send_async, answer_async, error, TIMEOUT, user_is_creator_or_admin, user_is_creator, game_is_running
+from utils import send_async, send_sticker_async, answer_async, error, TIMEOUT, user_is_creator_or_admin, user_is_creator, game_is_running
 
 
 logging.basicConfig(
@@ -86,8 +86,8 @@ def new_game(bot, update):
         if update.message.chat_id in gm.remind_dict:
             for user in gm.remind_dict[update.message.chat_id]:
                 send_async(bot,
-                           user,
-                           text=_("A new game has been started in {title}").format(
+                        user,
+                        text=_("A new game has been started in {title}").format(
                                 title=update.message.chat.title))
 
             del gm.remind_dict[update.message.chat_id]
@@ -98,7 +98,8 @@ def new_game(bot, update):
         game.mode = DEFAULT_GAMEMODE
         send_async(bot, chat_id,
                    text=_("Created a new game! Join the game with /join "
-                          "and start the game with /start"))
+                          "and start the game with /start "
+                          "and add a bot to the game using /bot"))
 
 
 @user_locale
@@ -405,8 +406,8 @@ def start_game(bot, update, args, job_queue):
 
             send_first()
             if game.current_player.user.id == 0:
-                game.current_player.playBot(bot, chat, game, TIMEOUT, __, start_player_countdown, 
-                job_queue, InlineKeyboardMarkup, display_name, send_async)
+                game.current_player.playBot(bot, chat, game, __, start_player_countdown, 
+                    job_queue, InlineKeyboardMarkup, display_name, TIMEOUT)
             start_player_countdown(bot, game, job_queue)
 
     elif len(args) and args[0] == 'select':
@@ -654,7 +655,7 @@ def reply_to_query(bot, update):
 
 @game_locales
 @user_locale
-async def process_result(bot, update, job_queue) :
+def process_result(bot, update, job_queue) :
 
     """
     Handler for chosen inline results.
@@ -710,14 +711,14 @@ async def process_result(bot, update, job_queue) :
             __("Next player: {name}", multi=game.translate)
             .format(name=display_name(game.current_player.user)))
         choice = [[InlineKeyboardButton(text=_("Make your choice!"), switch_inline_query_current_chat='')]]
-        await send_async(bot, chat.id,
+        send_async(bot, chat.id,
                         text=nextplayer_message,
                         reply_markup=InlineKeyboardMarkup(choice))
         start_player_countdown(bot, game, job_queue)
 
         if game.current_player.user.id == 0:
-            game.current_player.playBot(bot, chat, game, TIMEOUT, __, start_player_countdown, 
-                job_queue, InlineKeyboardMarkup, display_name, send_async)
+            game.current_player.playBot(bot, chat, game, __, start_player_countdown, 
+                job_queue, InlineKeyboardMarkup, display_name, TIMEOUT)
             
 
 
@@ -756,12 +757,35 @@ def onText(bot, update):
             send_async(bot, chat.id,
                        text=__("Não há mais cartas para compra",
                                multi=game.translate))
-
+@user_locale
 def join_bot_player(bot, update):
     chat = update.message.chat
     user = User(0, 'Medicilândia uno bot', 0)
-    gm.join_game(user,chat)
-    send_async(bot, chat.id, text='Medicilândia uno bot entrou na partida.')
+    try:
+        gm.join_game(user,chat)
+        send_async(bot, chat.id, 
+        text='Medicilândia uno bot entrou na partida.', 
+        reply_to_message_id=update.message.message_id)
+    except LobbyClosedError:
+            send_async(bot, chat.id, text=_("The lobby is closed"))
+
+    except NoGameInChatError:
+        send_async(bot, chat.id,
+                   text=_("No game is running at the moment. "
+                          "Create a new game with /new"),
+                   reply_to_message_id=update.message.message_id)
+
+    except AlreadyJoinedError:
+        send_async(bot, chat.id,
+                   text=_("Bot already joined the game. Start the game "
+                          "with /start"),
+                   reply_to_message_id=update.message.message_id)
+
+    except DeckEmptyError:
+        send_async(bot, chat.id,
+                   text=_("There are not enough cards left in the deck for "
+                          "new players to join."),
+                   reply_to_message_id=update.message.message_id)
 
 
 # Add all handlers to the dispatcher and run the bot

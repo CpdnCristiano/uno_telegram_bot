@@ -28,7 +28,7 @@ from shared_vars import gm
 
 logger = logging.getLogger(__name__)
 
-TIMEOUT = 2.5
+TIMEOUT = 5
 
 
 def list_subtract(list1, list2):
@@ -93,6 +93,16 @@ def send_async(bot, *args, **kwargs):
     except Exception as e:
         error(None, None, e)
 
+@run_async
+def send_sticker_async(bot, *args, **kwargs):
+    """Send a message asynchronously"""
+    if 'timeout' not in kwargs:
+        kwargs['timeout'] = TIMEOUT
+
+    try:
+        bot.sendSticker(*args, **kwargs)
+    except Exception as e:
+        error(None, None, e)        
 
 @run_async
 def answer_async(bot, *args, **kwargs):
