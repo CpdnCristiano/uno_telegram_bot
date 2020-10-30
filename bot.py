@@ -406,7 +406,7 @@ def start_game(bot, update, args, job_queue):
             send_first()
             if game.current_player.user.id == 0:
                 game.current_player.playBot(bot, chat, game, TIMEOUT, __, start_player_countdown, 
-                job_queue, InlineKeyboardMarkup, display_name)
+                job_queue, InlineKeyboardMarkup, display_name, send_async)
             start_player_countdown(bot, game, job_queue)
 
     elif len(args) and args[0] == 'select':
@@ -654,7 +654,7 @@ def reply_to_query(bot, update):
 
 @game_locales
 @user_locale
-def process_result(bot, update, job_queue):
+async def process_result(bot, update, job_queue) :
 
     """
     Handler for chosen inline results.
@@ -710,14 +710,14 @@ def process_result(bot, update, job_queue):
             __("Next player: {name}", multi=game.translate)
             .format(name=display_name(game.current_player.user)))
         choice = [[InlineKeyboardButton(text=_("Make your choice!"), switch_inline_query_current_chat='')]]
-        bot.sendMessage( chat.id,
+        await send_async(bot, chat.id,
                         text=nextplayer_message,
                         reply_markup=InlineKeyboardMarkup(choice))
         start_player_countdown(bot, game, job_queue)
 
         if game.current_player.user.id == 0:
             game.current_player.playBot(bot, chat, game, TIMEOUT, __, start_player_countdown, 
-                job_queue, InlineKeyboardMarkup, display_name)
+                job_queue, InlineKeyboardMarkup, display_name, send_async)
             
 
 

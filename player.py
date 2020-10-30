@@ -186,37 +186,37 @@ class Player(object):
 
         return is_playable
 
-    def playBot(self, bot, chat, game, time, __, start_player_countdown, 
-    job_queue, InlineKeyboardMarkup, display_name):
+    async def playBot(self, bot, chat, game, time, __, start_player_countdown, 
+    job_queue, InlineKeyboardMarkup, display_name, send_async):
         if len(self.playable_cards()) == 0:
-            bot.sendMessage(chat.id, text='Medicilândia uno bot comprou {cards} cartas:'
+            await send_async(bot,chat.id, text='Medicilândia uno bot comprou {cards} cartas:'
             .format(cards=game.draw_counter or 1))
             self.draw()
             if len(self.playable_cards()) == 0:
                 game.turn()
-                bot.sendMessage(chat.id, text='Medicilândia uno bot passou a vez')
+                await send_async(bot,chat.id, text='Medicilândia uno bot passou a vez')
             else: 
                 cardPla = self.playable_cards()[0]
                 self.play(cardPla)
-                bot.sendMessage(chat.id, text='Medicilândia uno bot jogou:')
+                await send_async(bot,chat.id, text='Medicilândia uno bot jogou:')
                 bot.sendSticker(chat.id,
                                 sticker=c.STICKERS[str(cardPla)],
                                 timeout=time)
                 if cardPla.special : 
                     color = c.COLORS[randint(0, 3)]
-                    bot.sendMessage( chat.id, text='Medicilândia escolheu a cor: {selectColor}'
+                    await send_async(bot,chat.id, text='Medicilândia escolheu a cor: {selectColor}'
                         .format(selectColor=c.COLOR_ICONS[color]))
                     game.choose_color(color)
         else: 
             cardPla = self.playable_cards()[0]
             self.play(cardPla)
-            bot.sendMessage(chat.id, text='Medicilândia uno bot jogou:')
+            send_async(bot,chat.id, text='Medicilândia uno bot jogou:')
             bot.sendSticker(chat.id,
                                 sticker=c.STICKERS[str(cardPla)],
                                 timeout=time)
             if cardPla.special : 
                 color = c.COLORS[randint(0, 3)]
-                bot.sendMessage( chat.id, text='Medicilândia escolheu a cor: {selectColor}'
+                await send_async(bot, chat.id, text='Medicilândia escolheu a cor: {selectColor}'
                 .format(selectColor=c.COLOR_ICONS[color]))
                 game.choose_color(color)
 
@@ -224,7 +224,7 @@ class Player(object):
             __("Next player: {name}", multi=game.translate)
             .format(name=display_name(game.current_player.user)))
         choice = [[InlineKeyboardButton(text=("Make your choice!"), switch_inline_query_current_chat='')]]
-        bot.sendMessage( chat.id,
+        await send_async(bot, chat.id,
                         text=nextplayer_message,
                         reply_markup=InlineKeyboardMarkup(choice))
         start_player_countdown(bot, game, job_queue)
