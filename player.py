@@ -236,12 +236,10 @@ class Player(object):
                     timeout=TIMEOUT)
                 game.choose_color(color)
 
-        nextplayer_message = (
-            __("Next player: {name}", multi=game.translate)
-            .format(name=display_name(game.current_player.user)))
         choice = [[InlineKeyboardButton(text=("Make your choice!"), switch_inline_query_current_chat='')]]
         bot.sendMessage(chat.id,
-                        text=nextplayer_message,
+                        text=(__("Next player: {name}", multi=game.translate)
+            .format(name=display_name(game.current_player.user))),
                         reply_markup=InlineKeyboardMarkup(choice),
                         timeout=TIMEOUT)
         start_player_countdown(bot, game, job_queue)

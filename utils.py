@@ -28,7 +28,7 @@ from shared_vars import gm
 
 logger = logging.getLogger(__name__)
 
-TIMEOUT = 5
+TIMEOUT = 10
 
 
 def list_subtract(list1, list2):
