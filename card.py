@@ -116,7 +116,7 @@ STICKERS = {
     'draw_four': 'BQADBAAD9QEAAl9XmQABVlkSNfhn76cC',
     'colorchooser': 'BQADBAAD8wEAAl9XmQABl9rUOPqx4E4C',
     'option_draw': 'BQADBAAD-AIAAl9XmQABxEjEcFM-VHIC',
-    'option_pass': 'BQADBAAD-gIAAl9XmQABcEkAAbaZ4SicAg',
+    'option_pass': 'BQADAQADEAIAAj4q6QABI1-uJHk89vAC',
     'option_bluff': 'BQADBAADygIAAl9XmQABJoLfB9ntI2UC',
     'option_info': 'BQADBAADxAIAAl9XmQABC5v3Z77VLfEC'
 }

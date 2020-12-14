@@ -3,16 +3,14 @@ import random
 import logging
 
 import card as c
-from datetime import datetime
 
-from telegram import Message, Chat
 
 from config import TIME_REMOVAL_AFTER_SKIP, MIN_FAST_TURN_TIME
 from errors import DeckEmptyError, NotEnoughPlayersError
 from internationalization import __, _
 from shared_vars import gm
 from user_setting import UserSetting
-from utils import send_async, display_name, game_is_running
+from utils import display_color_group, send_async, display_name, game_is_running
 
 logger = logging.getLogger(__name__)
 
@@ -99,6 +97,11 @@ def do_play_card(bot, player, result_id):
 
     if game.choosing_color:
         send_async(bot, chat.id, text=__("Please choose a color", multi=game.translate))
+        if game.current_player.user.id == bot.id:
+            print('escolheu')
+            color = c.COLORS[random.randint(0, 3)]
+            game.choose_color(color)
+            send_async(bot, chat.id, text=display_color_group(color, game))
 
     if len(player.cards) == 1:
         send_async(bot, chat.id, text="UNO!")
@@ -127,7 +130,7 @@ def do_play_card(bot, player, result_id):
                 us2.games_played += 1
 
             gm.end_game(chat, user)
-
+    
 
 def do_draw(bot, player):
     """Does the drawing"""

@@ -30,6 +30,7 @@ from telegram import ParseMode, InlineKeyboardMarkup, \
 from telegram.ext import InlineQueryHandler, ChosenInlineResultHandler, \
     CommandHandler, MessageHandler, Filters, CallbackQueryHandler
 from telegram.ext.dispatcher import run_async
+from telegram.inline.inputtextmessagecontent import InputTextMessageContent
 from telegram.user import User
 
 import card as c
@@ -406,7 +407,7 @@ def start_game(bot, update, args, job_queue):
                                 timeout=TIMEOUT)
 
             send_first()
-            if game.current_player.user.id == 0:
+            if game.current_player.user.id == bot.id:
                 playBot(game.current_player, bot, chat, game, job_queue)
 
             start_player_countdown(bot, game, job_queue)
@@ -707,20 +708,7 @@ def process_result(bot, update, job_queue) :
         reset_waiting_time(bot, player)
         do_play_card(bot, player, result_id)
 
-    if game_is_running(game):
-        nextplayer_message = (
-            __("Next player: {name}", multi=game.translate)
-            .format(name=display_name(game.current_player.user)))
-        choice = [[InlineKeyboardButton(text=_("Make your choice!"), switch_inline_query_current_chat='')]]
-        send_async(bot, chat.id,
-                        text=nextplayer_message,
-                        reply_markup=InlineKeyboardMarkup(choice))
-        start_player_countdown(bot, game, job_queue)
-
-        if game.current_player.user.id == 0:
-            playBot(game.current_player, bot, chat, game, job_queue)
-            
-
+    play_next(game, bot, chat, job_queue)
 
 def reset_waiting_time(bot, player):
     """Resets waiting time for a player and sends a notice to the group"""
@@ -759,8 +747,9 @@ def onText(bot, update):
                                multi=game.translate))
 @user_locale
 def join_bot_player(bot, update):
+    
     chat = update.message.chat
-    user = User(0, 'Medicilândia uno bot', 0)
+    user = User(bot.id, bot.first_name, 0)
     try:
         gm.join_game(user,chat)
         send_async(bot, chat.id, 
@@ -788,64 +777,47 @@ def join_bot_player(bot, update):
                    reply_to_message_id=update.message.message_id)
 
 
-@run_async
 def playBot( player, bot, chat, game, job_queue):
-        if len(player.playable_cards()) == 0:
-            cards=game.draw_counter or 1
-            bot.sendMessage(chat.id, 
-            text='Medicilândia uno bot comprou {cards} cartas:'
-                .format(cards=cards),
-            timeout=TIMEOUT)
-            player.draw()
-            if len(player.playable_cards()) == 0 or cards > 1:
-                game.turn()
-                bot.sendMessage(chat.id, 
-                text='Medicilândia uno bot passou a vez',
+    print('bot vez')
+    if len(player.playable_cards()) == 0:
+        if player.drew:
+            send_async(bot,
+                chat.id,
+                text='Pass')
+            game.turn()
+        else:
+            n =game.draw_counter or 1
+            reset_waiting_time(bot, player)
+            do_draw(bot, player)
+            send_async(bot,
+                   chat.id,
+                   text='Drawing {number} card'.format(number=n), 
+                   multi=game.translate)
+    else: 
+        cardPla = player.playable_cards()[0]
+        do_play_card(bot, player, str(cardPla))
+        bot.sendSticker(chat.id,
+                        sticker=c.STICKERS[str(cardPla)],
                 timeout=TIMEOUT)
-            else: 
-                cardPla = player.playable_cards()[0]
-                player.play(cardPla)
-                bot.sendMessage(chat.id, 
-                text='Medicilândia uno bot jogou:',
-                timeout=TIMEOUT)
-                bot.sendSticker(chat.id,
-                                sticker=c.STICKERS[str(cardPla)],
-                                timeout=TIMEOUT)
-                if cardPla.special : 
-                    color = c.COLORS[randint(0, 3)]
-                    bot.sendMessage(chat.id, 
-                    text='Medicilândia escolheu a cor: {selectColor}'
-                        .format(selectColor=c.COLOR_ICONS[color]), 
-                        timeout=TIMEOUT)
-                    game.choose_color(color)
-        else: 
-            cardPla = player.playable_cards()[0]
-            player.play(cardPla)
-            bot.sendMessage(chat.id, 
-                text='Medicilândia uno bot jogou:',
-                timeout=TIMEOUT)
-            bot.sendSticker(chat.id,
-                                sticker=c.STICKERS[str(cardPla)],
-                timeout=TIMEOUT)
-            if cardPla.special : 
-                color = c.COLORS[randint(0, 3)]
-                bot.sendMessage( chat.id, 
-                    text='Medicilândia escolheu a cor: {selectColor}'
-                        .format(selectColor=c.COLOR_ICONS[color]),
-                    timeout=TIMEOUT)
-                game.choose_color(color)
 
-        nextplayer_message = ("Next player: {name}"
+    play_next(game, bot, chat, job_queue)
+        
+            
+def play_next(game, bot, chat, job_queue):
+    if game_is_running(game):
+        nextplayer_message = (
+            __("Next player: {name}", multi=game.translate)
             .format(name=display_name(game.current_player.user)))
-        choice = [[InlineKeyboardButton(text=("Make your choice!"), 
-        switch_inline_query_current_chat='')]]
-        bot.sendMessage(chat.id,
-                        text= nextplayer_message,
-                        reply_markup=InlineKeyboardMarkup(choice),
-                        timeout=TIMEOUT)
+        choice = [[InlineKeyboardButton(text=_("Make your choice!"), switch_inline_query_current_chat='')]]
+        send_async(bot, chat.id,
+                        text=nextplayer_message,
+                        reply_markup=InlineKeyboardMarkup(choice))
+        start_player_countdown(bot, game, job_queue)
 
-        if game.current_player.user.id == 0:
-            playBot(player, bot, chat, game, job_queue)
+        if game.current_player.user.id == bot.id:
+            playBot(game.current_player, bot, chat, game, job_queue)
+          
+       
 # Add all handlers to the dispatcher and run the bot
 dispatcher.add_handler(InlineQueryHandler(reply_to_query))
 dispatcher.add_handler(ChosenInlineResultHandler(process_result, pass_job_queue=True))
